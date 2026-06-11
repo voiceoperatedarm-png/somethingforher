@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>For You, Mau</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --cream:#FAF7F4;
+  --ivory:#F2EDE6;
+  --ink:#1A1714;
+  --muted:#887F76;
+  --blush:#C08060;
+  --blush-lt:#EDD8C8;
+  --sage:#8FA68A;
+  --sage-lt:#D8E8D4;
+  --line:#E0D8CF;
+  --white:#FFFFFF;
+}
+html{scroll-behavior:smooth;overflow-x:hidden}
+body{
+  background:var(--cream);
+  color:var(--ink);
+  font-family:'DM Sans',sans-serif;
+  font-size:15px;
+  line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+
+/* ── FLOATING PETALS (canvas) ── */
+#petal-canvas{
+  position:fixed;inset:0;
+  pointer-events:none;
+  z-index:0;
+  opacity:0.55;
+}
+
+/* ── HERO ── */
+.hero{
+  min-height:100svh;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  text-align:center;
+  padding:4rem 2rem 5rem;
+  position:relative;
+  z-index:1;
+}
+
+.hero-orb{
+  position:absolute;
+  border-radius:50%;
+  filter:blur(60px);
+  pointer-events:none;
+}
+.orb1{width:300px;height:300px;background:var(--blush-lt);top:-60px;left:-80px;opacity:0.5;animation:drift1 8s ease-in-out infinite}
+.orb2{width:250px;height:250px;background:var(--sage-lt);bottom:-40px;right:-60px;opacity:0.45;animation:drift2 10s ease-in-out infinite}
+.orb3{width:180px;height:180px;background:#EDE0F0;top:40%;left:60%;opacity:0.3;animation:drift3 12s ease-in-out infinite}
+
+@keyframes drift1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(30px,20px) scale(1.1)}}
+@keyframes drift2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-20px,-30px) scale(1.08)}}
+@keyframes drift3{0%,100%{transform:translate(0,0)}50%{transform:translate(-25px,15px)}}
+
+.hero-badge{
+  display:inline-flex;align-items:center;gap:8px;
+  background:var(--white);
+  border:1px solid var(--line);
+  border-radius:999px;
+  padding:6px 16px;
+  font-size:11px;letter-spacing:0.15em;text-transform:uppercase;
+  color:var(--blush);font-weight:500;
+  margin-bottom:2.5rem;
+  opacity:0;animation:popIn 0.6s 0.4s cubic-bezier(.34,1.56,.64,1) forwards;
+}
+.badge-dot{width:6px;height:6px;border-radius:50%;background:var(--blush);animation:pulse 2s ease infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(1.4)}}
+
+.hero-title{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(3.2rem,14vw,5.5rem);
+  font-weight:300;line-height:1.0;
+  color:var(--ink);
+  opacity:0;animation:fadeUp 0.9s 0.65s ease forwards;
+}
+.hero-title em{font-style:italic;color:var(--blush)}
+.hero-title .line2{display:block;margin-top:0.1em}
+
+.hero-sub{
+  margin-top:1.8rem;
+  max-width:300px;
+  font-size:14px;color:var(--muted);line-height:1.85;
+  opacity:0;animation:fadeUp 0.9s 0.9s ease forwards;
+}
+
+.scroll-cta{
+  margin-top:3.5rem;
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  opacity:0;animation:fadeUp 0.8s 1.3s ease forwards;
+}
+.scroll-cta span{font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted)}
+.scroll-track{width:1px;height:48px;background:var(--line);position:relative;overflow:hidden;border-radius:1px}
+.scroll-drop{
+  position:absolute;top:-100%;width:100%;height:50%;
+  background:linear-gradient(to bottom,transparent,var(--blush),transparent);
+  animation:drop 2s 1.6s ease-in-out infinite;
+}
+@keyframes drop{0%{top:-100%}100%{top:200%}}
+
+/* ── SHARED ── */
+.section-wrap{
+  max-width:480px;margin:0 auto;
+  padding:5rem 1.5rem;
+  position:relative;z-index:1;
+}
+
+.label{
+  font-size:10px;font-weight:500;letter-spacing:0.22em;
+  text-transform:uppercase;color:var(--blush);
+  margin-bottom:1.2rem;display:block;
+}
+
+.hr-ornament{
+  display:flex;align-items:center;gap:12px;
+  margin:0 auto 4rem;
+  max-width:200px;
+}
+.hr-ornament::before,.hr-ornament::after{content:'';flex:1;height:1px;background:var(--line)}
+.hr-ornament-dot{width:5px;height:5px;border-radius:50%;background:var(--blush);opacity:0.6}
+
+/* ── LETTER ── */
+.letter-card{
+  background:var(--white);
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:2.5rem 2rem;
+  position:relative;
+  box-shadow:0 4px 40px rgba(192,128,96,0.08),0 1px 4px rgba(0,0,0,0.04);
+}
+.letter-card::before{
+  content:'\201C';
+  font-family:'Cormorant Garamond',serif;
+  font-size:7rem;line-height:0.8;
+  color:var(--blush-lt);
+  position:absolute;top:1.2rem;left:1.2rem;
+  pointer-events:none;
+}
+.letter-p{
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.15rem;line-height:1.95;
+  color:var(--ink);font-weight:300;
+  position:relative;z-index:1;
+}
+.letter-p+.letter-p{margin-top:1.2rem}
+.letter-sign{
+  margin-top:2rem;
+  font-family:'Cormorant Garamond',serif;
+  font-style:italic;font-size:1.1rem;color:var(--blush);
+}
+
+/* ── APPRECIATION ── */
+.appr-title{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(2rem,8vw,2.8rem);
+  font-weight:300;line-height:1.15;
+  margin-bottom:2.5rem;
+}
+
+.thing-card{
+  background:var(--white);
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:1.3rem 1.4rem;
+  margin-bottom:10px;
+  display:flex;align-items:flex-start;gap:1rem;
+  box-shadow:0 2px 16px rgba(0,0,0,0.03);
+  transition:transform 0.2s ease,box-shadow 0.2s ease;
+  cursor:default;
+}
+.thing-card:hover{
+  transform:translateY(-2px);
+  box-shadow:0 6px 24px rgba(192,128,96,0.12);
+}
+.thing-num{
+  min-width:28px;height:28px;
+  border-radius:50%;
+  background:var(--blush-lt);
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:500;color:var(--blush);
+  flex-shrink:0;margin-top:1px;
+}
+.thing-title{font-size:13.5px;font-weight:500;color:var(--ink);margin-bottom:3px}
+.thing-body{font-size:13px;color:var(--muted);line-height:1.7}
+
+/* ── PROMISES ── */
+.promises-title{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(2rem,8vw,2.8rem);
+  font-weight:300;line-height:1.15;
+  text-align:center;
+  margin-bottom:2.5rem;
+}
+.promises-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+.promise-card{
+  background:var(--white);
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:1.3rem 1.1rem;
+  box-shadow:0 2px 16px rgba(0,0,0,0.03);
+  transition:transform 0.2s ease;
+}
+.promise-card:hover{transform:translateY(-2px)}
+.p-icon{
+  width:36px;height:36px;border-radius:10px;
+  background:var(--ivory);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.1rem;
+  margin-bottom:0.8rem;
+}
+.p-title{font-size:13px;font-weight:500;color:var(--ink);margin-bottom:4px;line-height:1.3}
+.p-body{font-size:11.5px;color:var(--muted);line-height:1.65}
+
+/* ── TIMELINE / MEMORIES ── */
+.timeline-title{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(2rem,8vw,2.8rem);
+  font-weight:300;line-height:1.15;
+  text-align:center;
+  margin-bottom:2.5rem;
+}
+.timeline{position:relative;padding-left:2rem}
+.timeline::before{
+  content:'';
+  position:absolute;left:7px;top:8px;bottom:8px;width:1px;
+  background:linear-gradient(to bottom,var(--blush-lt),var(--sage-lt),var(--blush-lt));
+}
+.t-item{
+  position:relative;
+  padding:0 0 2rem 1.5rem;
+}
+.t-dot{
+  position:absolute;left:-24px;top:4px;
+  width:14px;height:14px;
+  border-radius:50%;
+  background:var(--white);
+  border:2px solid var(--blush);
+  box-shadow:0 0 0 3px var(--blush-lt);
+}
+.t-year{font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--blush);font-weight:500;margin-bottom:3px}
+.t-text{font-family:'Cormorant Garamond',serif;font-size:1.05rem;color:var(--ink);line-height:1.75;font-weight:300}
+
+/* ── CLOSING ── */
+.closing{
+  background:var(--ink);
+  color:var(--cream);
+  text-align:center;
+  padding:6rem 2rem 7rem;
+  position:relative;overflow:hidden;
+  z-index:1;
+}
+.closing-glow{
+  position:absolute;border-radius:50%;filter:blur(80px);pointer-events:none;
+}
+.glow-a{width:280px;height:280px;background:#7A4030;top:-80px;left:-60px;opacity:0.35;animation:drift1 9s ease-in-out infinite}
+.glow-b{width:220px;height:220px;background:#3A5040;bottom:-60px;right:-40px;opacity:0.3;animation:drift2 11s ease-in-out infinite}
+
+.closing-title{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(2.2rem,9vw,4rem);
+  font-weight:300;font-style:italic;
+  color:#EDD8C8;
+  margin-bottom:1.5rem;
+  position:relative;
+}
+.closing-body{
+  max-width:320px;margin:0 auto;
+  font-size:14px;color:#9A9088;line-height:1.95;
+  position:relative;
+}
+.closing-date{
+  margin-top:3rem;font-size:10px;
+  letter-spacing:0.2em;text-transform:uppercase;
+  color:#4A433D;position:relative;
+}
+
+/* ── HEART PULSE (closing) ── */
+.heart-wrap{
+  display:flex;justify-content:center;
+  margin-bottom:2rem;position:relative;
+}
+.heart-svg{animation:heartbeat 2s ease-in-out infinite}
+@keyframes heartbeat{
+  0%,100%{transform:scale(1)}
+  14%{transform:scale(1.15)}
+  28%{transform:scale(1)}
+  42%{transform:scale(1.08)}
+  70%{transform:scale(1)}
+}
+
+/* ── SCROLL REVEAL ── */
+.reveal{opacity:0;transform:translateY(30px);transition:opacity 0.75s ease,transform 0.75s ease}
+.reveal.up{transform:translateY(30px)}
+.reveal.left{transform:translateX(-30px)}
+.reveal.right{transform:translateX(30px)}
+.reveal.visible{opacity:1;transform:translate(0,0)}
+.stagger .thing-card,.stagger .promise-card{opacity:0;transform:translateY(20px);transition:opacity 0.5s ease,transform 0.5s ease,box-shadow 0.2s ease}
+.stagger.visible .thing-card,.stagger.visible .promise-card{opacity:1;transform:translateY(0)}
+.stagger.visible .thing-card:nth-child(1),.stagger.visible .promise-card:nth-child(1){transition-delay:0.05s}
+.stagger.visible .thing-card:nth-child(2),.stagger.visible .promise-card:nth-child(2){transition-delay:0.12s}
+.stagger.visible .thing-card:nth-child(3),.stagger.visible .promise-card:nth-child(3){transition-delay:0.19s}
+.stagger.visible .thing-card:nth-child(4),.stagger.visible .promise-card:nth-child(4){transition-delay:0.26s}
+.stagger.visible .thing-card:nth-child(5),.stagger.visible .promise-card:nth-child(5){transition-delay:0.33s}
+.stagger.visible .thing-card:nth-child(6),.stagger.visible .promise-card:nth-child(6){transition-delay:0.40s}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes popIn{from{opacity:0;transform:scale(0.8)}to{opacity:1;transform:scale(1)}}
+
+@media(prefers-reduced-motion:reduce){
+  *{animation-duration:0.01ms!important;transition-duration:0.01ms!important}
+}
+</style>
+</head>
+<body>
+
+<canvas id="petal-canvas"></canvas>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-orb orb1"></div>
+  <div class="hero-orb orb2"></div>
+  <div class="hero-orb orb3"></div>
+  <div class="hero-badge"><span class="badge-dot"></span>Only for you</div>
+  <h1 class="hero-title">
+    You are<br>
+    <em>seen,</em>
+    <span class="line2"><em>Mau.</em></span>
+  </h1>
+  <p class="hero-sub">Whenever you doubt it — come back here. This is what's true.</p>
+  <div class="scroll-cta">
+    <span>Read on</span>
+    <div class="scroll-track"><div class="scroll-drop"></div></div>
+  </div>
+</section>
+
+<!-- LETTER -->
+<div class="section-wrap">
+  <div class="hr-ornament"><div class="hr-ornament-dot"></div></div>
+  <div class="reveal">
+    <span class="label">A letter</span>
+    <div class="letter-card">
+      <p class="letter-p">Mau,I don't always find the right words when you're in front of me. But I've been thinking a lot, and I need you to know this: I see you. I see everything you've been doing, quietly, without asking for anything in return.</p>
+      <p class="letter-p">These last few months have been the hardest of my life. And through all of it..you stayed. You didn't have to. You chose to. You held me together on the days I couldn't do it myself, and I was so lost in my own chaos that I forgot to turn around and ask how <em>you</em> were doing.</p>
+      <p class="letter-p">That was wrong of me. Not because I don't care, but because I do, more than I've been showing. When you'd try to tell me something and it turned into a fight, it wasn't because your feelings didn't matter. They always did. I was just too deep in my own head to hear properly.</p>
+      <p class="letter-p">You are not "too sensitive." Your little things are not little to me, not really. I'm sorry for ever making you feel that way. You deserve someone who listens first. I'm working on being that.</p>
+      <div class="letter-sign">With everything I have, always — your person.</div>
+    </div>
+  </div>
+</div>
+
+<!-- APPRECIATION -->
+<div class="section-wrap">
+  <div class="hr-ornament"><div class="hr-ornament-dot"></div></div>
+  <div class="reveal">
+    <span class="label">What I see in you</span>
+    <h2 class="appr-title">Things about you<br>I never say out loud</h2>
+  </div>
+  <div class="stagger">
+    <div class="thing-card">
+      <div class="thing-num">01</div>
+      <div><div class="thing-title">The way you stay calm when I can't</div><div class="thing-body">You've talked me down from so many edges. You never made a scene of it. You just showed up.</div></div>
+    </div>
+    <div class="thing-card">
+      <div class="thing-num">02</div>
+      <div><div class="thing-title">You never gave up on me, even when I did</div><div class="thing-body">On the days I thought everything was falling apart, you were the one thing that felt steady. That means more than I know how to say.</div></div>
+    </div>
+    <div class="thing-card">
+      <div class="thing-num">03</div>
+      <div><div class="thing-title">How deeply you feel everything</div><div class="thing-body">You care so fully, about people, about us, about doing things right. I never want you to shrink that to make me comfortable.</div></div>
+    </div>
+    <div class="thing-card">
+      <div class="thing-num">04</div>
+      <div><div class="thing-title">Your patience</div><div class="thing-body">Five years. Through all of this. You didn't have to give me that kind of patience. I don't take it for granted, even when it looks like I do.</div></div>
+    </div>
+    <div class="thing-card">
+      <div class="thing-num">05</div>
+      <div><div class="thing-title">The small ways you love</div><div class="thing-body">Checking in. Remembering things. Showing up quietly. The most honest love isn't loud, and yours never has to be.</div></div>
+    </div>
+    <div class="thing-card">
+      <div class="thing-num">06</div>
+      <div><div class="thing-title">That you chose to still be here</div><div class="thing-body">Knowing everything, all my mess, all my failures, and choosing to stay anyway. That's the most extraordinary thing about you, Urvi.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- TIMELINE -->
+<div class="section-wrap">
+  <div class="hr-ornament"><div class="hr-ornament-dot"></div></div>
+  <div class="reveal">
+    <span class="label">Us, across time</span>
+    <h2 class="timeline-title">Moments that<br>matter to me</h2>
+  </div>
+  <div class="reveal timeline">
+    <div class="t-item">
+      <div class="t-dot"></div>
+      <div class="t-year">5 years ago</div>
+      <div class="t-text">We started. I didn't know then that I was meeting the person who'd become my safest place.</div>
+    </div>
+    <div class="t-item">
+      <div class="t-dot"></div>
+      <div class="t-year">The hard days</div>
+      <div class="t-text">Every time things got heavy, financially, academically, at home..you didn't flinch. You stayed right there beside me.</div>
+    </div>
+    <div class="t-item">
+      <div class="t-dot"></div>
+      <div class="t-year">The quiet moments</div>
+      <div class="t-text">The calls where nothing special happened. The small check-ins. Those are the ones I'll carry the longest.</div>
+    </div>
+    <div class="t-item">
+      <div class="t-dot"></div>
+      <div class="t-year">Right now</div>
+      <div class="t-text">This moment.. me finally saying what I should have said sooner. And you, hopefully, knowing it was always true.</div>
+    </div>
+  </div>
+</div>
+
+<!-- PROMISES -->
+<div class="section-wrap">
+  <div class="hr-ornament"><div class="hr-ornament-dot"></div></div>
+  <div class="reveal">
+    <span class="label">Going forward</span>
+    <h2 class="promises-title">What I'm<br>promising you</h2>
+  </div>
+  <div class="promises-grid stagger">
+    <div class="promise-card">
+      <div class="p-icon">🎧</div>
+      <div class="p-title">Listen first</div>
+      <div class="p-body">Before I respond or defend, I'll hear you out, fully.</div>
+    </div>
+    <div class="promise-card">
+      <div class="p-icon">🌿</div>
+      <div class="p-title">Your feelings are valid</div>
+      <div class="p-body">I'll stop measuring your problems by mine. What bothers you, matters.</div>
+    </div>
+    <div class="promise-card">
+      <div class="p-icon">💬</div>
+      <div class="p-title">Check in on you</div>
+      <div class="p-body">Not just in hard times. On ordinary days too, how are you, what do you need.</div>
+    </div>
+    <div class="promise-card">
+      <div class="p-icon">🤝</div>
+      <div class="p-title">Show up for you</div>
+      <div class="p-body">You've been my support. It's time I become yours too — consistently.</div>
+    </div>
+    <div class="promise-card">
+      <div class="p-icon">💛</div>
+      <div class="p-title">Say it more</div>
+      <div class="p-body">I appreciate you. I'm grateful for you. I love you. Out loud, often.</div>
+    </div>
+    <div class="promise-card">
+      <div class="p-icon">🕊️</div>
+      <div class="p-title">Talk, not fight</div>
+      <div class="p-body">When something stings, I'll pause. You're asking for care, not attacking me.</div>
+    </div>
+  </div>
+</div>
+
+<!-- CLOSING -->
+<div class="closing reveal">
+  <div class="closing-glow glow-a"></div>
+  <div class="closing-glow glow-b"></div>
+  <div class="heart-wrap">
+    <svg class="heart-svg" width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M20 34s-14-8.5-14-18a8 8 0 0116 0 8 8 0 0116 0c0 9.5-14 18-14 18z" fill="#C08060" opacity="0.9"/>
+    </svg>
+  </div>
+  <h2 class="closing-title">You are my person, Mau.</h2>
+  <p class="closing-body">Not just when it's easy. Always.<br><br>Thank you for loving me through the hardest version of myself. I see you. I appreciate you. And I'm not done showing up for you — I'm just getting started.</p>
+  <p class="closing-date">Written with love &nbsp;·&nbsp; June 2025</p>
+</div>
+
+<script>
+/* ── FLOATING PETALS ── */
+const canvas = document.getElementById('petal-canvas');
+const ctx = canvas.getContext('2d');
+let W, H, petals = [];
+
+const COLORS = ['#EDD8C8','#D8E8D4','#E8D8EC','#F0E4D4','#D4E4E0'];
+
+function resize(){
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+
+function makePetal(){
+  return {
+    x: Math.random() * W,
+    y: -20,
+    r: 3 + Math.random() * 5,
+    color: COLORS[Math.floor(Math.random()*COLORS.length)],
+    speed: 0.4 + Math.random() * 0.8,
+    drift: (Math.random()-0.5)*0.4,
+    rot: Math.random()*Math.PI*2,
+    rotSpeed: (Math.random()-0.5)*0.02,
+    wobble: Math.random()*Math.PI*2,
+    wobbleSpeed: 0.01 + Math.random()*0.02,
+    opacity: 0.4 + Math.random()*0.5
+  };
+}
+
+function initPetals(){
+  petals = [];
+  for(let i=0;i<30;i++){
+    const p = makePetal();
+    p.y = Math.random()*H;
+    petals.push(p);
+  }
+}
+
+function drawPetal(p){
+  ctx.save();
+  ctx.translate(p.x,p.y);
+  ctx.rotate(p.rot);
+  ctx.globalAlpha = p.opacity;
+  ctx.fillStyle = p.color;
+  ctx.beginPath();
+  ctx.ellipse(0,0,p.r,p.r*1.6,0,0,Math.PI*2);
+  ctx.fill();
+  ctx.restore();
+}
+
+function tick(){
+  ctx.clearRect(0,0,W,H);
+  petals.forEach(p=>{
+    p.y += p.speed;
+    p.x += p.drift + Math.sin(p.wobble)*0.3;
+    p.wobble += p.wobbleSpeed;
+    p.rot += p.rotSpeed;
+    if(p.y > H+20){ Object.assign(p, makePetal()); p.x = Math.random()*W; }
+    drawPetal(p);
+  });
+  requestAnimationFrame(tick);
+}
+
+resize();
+initPetals();
+tick();
+window.addEventListener('resize',()=>{ resize(); });
+
+/* ── SCROLL REVEAL ── */
+const reveals = document.querySelectorAll('.reveal, .stagger');
+const io = new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){ e.target.classList.add('visible'); }
+  });
+},{threshold:0.08});
+reveals.forEach(el=>io.observe(el));
+</script>
+</body>
+</html>
